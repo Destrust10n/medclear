@@ -1,5 +1,6 @@
 import express from 'express';
 import type { Request, Response } from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -17,6 +18,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+// Enable gzip/deflate compression for fast bandwidth-saving response transfers
+app.use(compression());
 // The dev server must always run on port 3000. In Cloud Run/container environments,
 // process.env.PORT is 8080 (where Nginx listens and proxies to localhost:3000).
 const port = 3000;
@@ -1465,8 +1468,13 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
+    // Immutable caching for hashed static assets to reduce network bandwidth
+    app.use(express.static(path.join(__dirname, 'dist'), {
+      maxAge: '7d',
+      etag: true,
+    }));
     app.get('*', (req: Request, res: Response) => {
+      res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     });
   }

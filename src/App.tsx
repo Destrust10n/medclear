@@ -1,46 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { ExplainFeature } from './components/ExplainFeature';
-import { UnclearDetectorFeature } from './components/UnclearDetectorFeature';
-import { UnderstandingCheckFeature } from './components/UnderstandingCheckFeature';
-import { MedicalDictionaryFeature } from './components/MedicalDictionaryFeature';
-import { VisitSummaryFeature } from './components/VisitSummaryFeature';
-import { AccessibilitySettings } from './components/AccessibilitySettings';
-import { OnboardingTour } from './components/OnboardingTour';
-import { MedicalReportReaderFeature } from './components/MedicalReportReaderFeature';
-import { MedicineDatabaseFeature } from './components/MedicineDatabaseFeature';
-import { Menu, HeartPulse, ShieldCheck, Phone } from 'lucide-react';
+import { Menu, HeartPulse, ShieldCheck, Phone, Loader2 } from 'lucide-react';
+
+// Code-split feature views to keep initial bundle tiny and fast to deploy
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const ExplainFeature = lazy(() => import('./components/ExplainFeature').then(m => ({ default: m.ExplainFeature })));
+const MedicalReportReaderFeature = lazy(() => import('./components/MedicalReportReaderFeature').then(m => ({ default: m.MedicalReportReaderFeature })));
+const MedicineDatabaseFeature = lazy(() => import('./components/MedicineDatabaseFeature').then(m => ({ default: m.MedicineDatabaseFeature })));
+const UnclearDetectorFeature = lazy(() => import('./components/UnclearDetectorFeature').then(m => ({ default: m.UnclearDetectorFeature })));
+const UnderstandingCheckFeature = lazy(() => import('./components/UnderstandingCheckFeature').then(m => ({ default: m.UnderstandingCheckFeature })));
+const MedicalDictionaryFeature = lazy(() => import('./components/MedicalDictionaryFeature').then(m => ({ default: m.MedicalDictionaryFeature })));
+const VisitSummaryFeature = lazy(() => import('./components/VisitSummaryFeature').then(m => ({ default: m.VisitSummaryFeature })));
+const AccessibilitySettings = lazy(() => import('./components/AccessibilitySettings').then(m => ({ default: m.AccessibilitySettings })));
+const OnboardingTour = lazy(() => import('./components/OnboardingTour').then(m => ({ default: m.OnboardingTour })));
+
+const FeatureLoadingFallback: React.FC = () => (
+  <div className="flex flex-col items-center justify-center min-h-[350px] p-8 text-slate-500 dark:text-slate-400">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 mb-3 animate-pulse shadow-sm">
+      <Loader2 className="h-6 w-6 animate-spin" />
+    </div>
+    <p className="text-sm font-medium">Loading MedClear AI module...</p>
+    <p className="text-xs text-slate-400 mt-1">Optimized on-demand module</p>
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const { activeTab, language } = useApp();
   const [isOpenMobile, setIsOpenMobile] = useState<boolean>(false);
 
   const renderActiveSection = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'explain':
-        return <ExplainFeature />;
-      case 'reports':
-        return <MedicalReportReaderFeature />;
-      case 'medicines':
-        return <MedicineDatabaseFeature />;
-      case 'unclear':
-        return <UnclearDetectorFeature />;
-      case 'quiz':
-        return <UnderstandingCheckFeature />;
-      case 'dictionary':
-        return <MedicalDictionaryFeature />;
-      case 'visit':
-        return <VisitSummaryFeature />;
-      case 'accessibility':
-        return <AccessibilitySettings />;
-      default:
-        return <Dashboard />;
-    }
+    return (
+      <Suspense fallback={<FeatureLoadingFallback />}>
+        {(() => {
+          switch (activeTab) {
+            case 'dashboard':
+              return <Dashboard />;
+            case 'explain':
+              return <ExplainFeature />;
+            case 'reports':
+              return <MedicalReportReaderFeature />;
+            case 'medicines':
+              return <MedicineDatabaseFeature />;
+            case 'unclear':
+              return <UnclearDetectorFeature />;
+            case 'quiz':
+              return <UnderstandingCheckFeature />;
+            case 'dictionary':
+              return <MedicalDictionaryFeature />;
+            case 'visit':
+              return <VisitSummaryFeature />;
+            case 'accessibility':
+              return <AccessibilitySettings />;
+            default:
+              return <Dashboard />;
+          }
+        })()}
+      </Suspense>
+    );
   };
 
   const isHindi = language === 'hi';
@@ -111,8 +129,10 @@ const AppContent: React.FC = () => {
         </div>
       </div>
 
-      {/* Onboarding Tour Modal */}
-      <OnboardingTour />
+      {/* Onboarding Tour Modal (deferred) */}
+      <Suspense fallback={null}>
+        <OnboardingTour />
+      </Suspense>
     </div>
   );
 };

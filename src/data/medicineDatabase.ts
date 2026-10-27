@@ -1,4 +1,4 @@
-import { MedicineEntry, DatabaseImportStats } from '../types';
+import type { MedicineEntry, DatabaseImportStats } from '../types/index.ts';
 
 /**
  * MedClear AI - Official Indian Medicine Knowledge Database

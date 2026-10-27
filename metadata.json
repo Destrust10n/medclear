@@ -1,0 +1,6 @@
+{
+  "name": "MedClear AI",
+  "description": "Understand your healthcare. Make informed decisions. Plain-language medical instructions, clarity detector, and comprehension checks in English and Hindi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
